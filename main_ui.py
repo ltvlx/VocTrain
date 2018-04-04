@@ -8,7 +8,7 @@ import voctrain as vt
 
 
 class Window(QtWidgets.QWidget):
-    fname = 'words.xlsx'
+    fname = ''
     def __init__(self):
         super().__init__()
         self.init_ui()
@@ -16,25 +16,20 @@ class Window(QtWidgets.QWidget):
     def init_ui(self):
         self.setFixedSize(560, 550)
         self.setWindowTitle("Train vocabulary")
-
-        # Loading vocabulary trainer class and making it ready
-        self.vocab = vt.VocabularyTrainer(self.fname)
         
         self.f_out = QtWidgets.QTextBrowser(self)
         self.f_out.setGeometry(30, 30, 500, 200)
         self.f_out.setStyleSheet("""border: 1px solid; font: Arial; font-size: 16px;""")
-        self.f_out.setText("In this field a definition of word will appear")
 
         self.f_in = QtWidgets.QTextEdit(self)
         self.f_in.setGeometry(30, 260, 500, 100)
         self.f_in.setStyleSheet("""border: 1px solid; font: Arial; font-size: 16px;""")
-        self.f_in.setText("In this field you should type your answer")
 
         # Start button
         self.b_start = QtWidgets.QPushButton(self)
         self.b_start.setGeometry(160, 390, 240, 60)
         self.b_start.setStyleSheet("""background-color: rgb(170, 170, 170); font: bold Arial; font-size: 18px;""")
-        self.b_start.setText("Start training!")
+        self.b_start.setText("Select vocabulary \nand start training")
         self.b_start.clicked.connect(self.start_training)
 
         # Answer button
@@ -71,22 +66,28 @@ class Window(QtWidgets.QWidget):
         shortcut = QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+Return"), self.f_in)
         shortcut.activated.connect(self.ctrl_enter_pressed)
 
-        # self.finp_path = QtWidgets.QFileDialog(self)
-        # self.finp_path.setGeometry(10, 10, 500, 30)
-        # self.finp_path.show()
-
-
         self.show()
 
 
     def start_training(self):
+        self.select_xlsx()
+
         self.b_start.hide()
 
-        self.f_out.setText('• '+self.vocab.get_definition())
+        self.f_out.setText(' • '+self.vocab.get_definition())
         self.f_in.setText("")
         
         self.b_answer.show()
         self.b_stop.show()
+
+    def select_xlsx(self):
+        fname_selected = QtWidgets.QFileDialog.getOpenFileName(directory='./', filter='Vocabulary in excel table (*.xlsx *.xls)')[0]
+        if fname_selected == '':
+            self.close()
+        else:
+            self.fname = fname_selected
+
+        self.vocab = vt.VocabularyTrainer(self.fname)
 
 
     def event_answer(self):
@@ -111,6 +112,7 @@ class Window(QtWidgets.QWidget):
 
         self.b_answer.show()
         self.b_next.hide()
+
 
     def ctrl_enter_pressed(self):
         if self.b_answer.isVisible():
