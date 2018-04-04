@@ -1,9 +1,5 @@
 import sys
 from PyQt5 import QtWidgets, QtCore, QtGui
-import codecs
-import pandas as pd
-import numpy as np
-
 import voctrain as vt
 
 
@@ -74,13 +70,17 @@ class Window(QtWidgets.QWidget):
 
         self.b_start.hide()
 
-        self.f_out.setText(' • '+self.vocab.get_definition())
+        self.f_out.setText(' • '+self.vocab.get_definition_bw())
         self.f_in.setText("")
         
         self.b_answer.show()
         self.b_stop.show()
 
     def select_xlsx(self):
+        # Later a pop-up dialog with training programs will be here
+        # aaaa = QtWidgets.QInputDialog.getItem(self, "Select training program", "", ['1', '2', '3', '4', ], 0, False)
+        # print(aaaa)
+
         fname_selected = QtWidgets.QFileDialog.getOpenFileName(directory='./', filter='Vocabulary in excel table (*.xlsx *.xls)')[0]
         if fname_selected == '':
             self.close()
@@ -107,7 +107,7 @@ class Window(QtWidgets.QWidget):
 
     def event_next(self):
         self.f_out.append("")
-        self.f_out.append('• '+self.vocab.get_definition())
+        self.f_out.append('• '+self.vocab.get_definition_bw())
         self.f_in.setText("")
 
         self.b_answer.show()
