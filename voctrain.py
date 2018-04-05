@@ -18,6 +18,7 @@ class VocabularyTrainer:
             for name in xls.sheet_names:
                 self.sheets[name] = pd.read_excel(xls, name)
                 self.sizes[name] = len(self.sheets[name].index)
+                self.sheets[name]['coeff'] = pd.to_numeric(self.sheets[name]['coeff'], downcast='float')
                 self.n_words_total += self.sizes[name]
         print("Total number of words in your dictionary is %d"%self.n_words_total)
 
@@ -33,6 +34,12 @@ class VocabularyTrainer:
 
 
     def check_answer(self, user_answer):
+        """
+        Checks the 'user_answer'  
+        Modifies 'self.sheets' dataframes  
+        Recalculates probabilities 'self.a_probs' based on the updated correct|incorrect information
+        """
+        # Weak spot now: recalc_probs is a part of bw_training procedures
         _i = self.a_index[self.a_i]
         _s = self.a_names[self.a_i]
 
@@ -52,7 +59,10 @@ class VocabularyTrainer:
                 self.n_incorrect += 1
                 result =  "Incorrect!\nYou said '%s', right words was '%s'"%(user_answer, word)
 
-        self.sheets[_s].at[_i, 'coeff'] = self.sheets[_s].at[_i, 'incorrect'] / self.sheets[_s].at[_i, 'correct']
+        _cor = self.sheets[_s].at[_i, 'correct']
+        _inc = self.sheets[_s].at[_i, 'incorrect']
+        self.sheets[_s].at[_i, 'coeff'] = get_coeff(_cor, _inc)
+
         self.recalc_probs()
         return result
 
@@ -65,33 +75,33 @@ class VocabularyTrainer:
         self.a_i = 0          # index of current word
         self.a_names = []     # three lists which form a single table of all sheet names
         self.a_index = []     # indexes of words in those sheets and coefficients of words
-        self.a_coeff = []
+        self.a_probs = []
 
         # making unified list of coeffs
         for _s in self.sheets:
             for _i in self.sheets[_s].index:
                 self.a_names.append(_s)
                 self.a_index.append(_i)
-                self.a_coeff.append(self.sheets[_s].at[_i, 'incorrect'] / self.sheets[_s].at[_i, 'correct'])
-        s = sum(self.a_coeff)
-        self.a_coeff = [x/s for x in self.a_coeff]        
-        print(self.a_coeff)
+                _cor = self.sheets[_s].at[_i, 'correct']
+                _inc = self.sheets[_s].at[_i, 'incorrect']
+                self.sheets[_s].at[_i, 'coeff'] = get_coeff(_cor, _inc)
+                self.a_probs.append(get_prob(get_coeff(_cor, _inc)))
+        s = sum(self.a_probs)
+        self.a_probs = [x/s for x in self.a_probs]        
+
 
     def recalc_probs(self):
         for i in range(self.n_words_total):
             _i = self.a_index[i]
             _s = self.a_names[i]
-            # self.a_coeff[i] = (self.sheets[_s].at[_i, 'coeff'])**2
-            self.a_coeff[i] = self.sheets[_s].at[_i, 'coeff']
+            self.a_probs[i] = get_prob(self.sheets[_s].at[_i, 'coeff'])
 
-        # normalization
-        s = sum(self.a_coeff)
-        self.a_coeff = [x/s for x in self.a_coeff]    
-        print(self.a_coeff)
+        s = sum(self.a_probs)
+        self.a_probs = [x/s for x in self.a_probs]    
 
 
     def get_definition_bw(self):
-        self.a_i = np.random.choice(range(self.n_words_total), p=self.a_coeff)
+        self.a_i = np.random.choice(range(self.n_words_total), p=self.a_probs)
         _i = self.a_index[self.a_i]
         _s = self.a_names[self.a_i]
 
@@ -119,8 +129,14 @@ def is_correct(word, uword):
         else:
             return False
 
+def get_coeff(_corr, _incorr):
+    # Function that defines 'coeff = f(correct, incorrect)
+    return _incorr - _corr * 0.6
 
-
+def get_prob(_coeff):
+    # Function that defines 'prob = f(coeff)'
+    return pow(2.71828182846, _coeff)
+    
 
 
 
