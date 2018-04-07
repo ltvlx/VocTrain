@@ -18,6 +18,8 @@ class VocabularyTrainer:
             for name in xls.sheet_names:
                 self.sheets[name] = pd.read_excel(xls, name)
                 self.sizes[name] = len(self.sheets[name].index)
+                self.sheets[name]['correct'] = self.sheets[name]['correct'].fillna(1)
+                self.sheets[name]['incorrect'] = self.sheets[name]['incorrect'].fillna(1)
                 self.sheets[name]['coeff'] = pd.to_numeric(self.sheets[name]['coeff'], downcast='float')
                 self.n_words_total += self.sizes[name]
         print("Total number of words in your dictionary is %d"%self.n_words_total)
