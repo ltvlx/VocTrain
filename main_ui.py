@@ -56,7 +56,7 @@ class Window(QtWidgets.QWidget):
         self.stats.setGeometry(-2, 530, 564, 22)
         self.stats.setAlignment(QtCore.Qt.AlignRight)
         self.stats.setStyleSheet("""border: 2px solid rgb(150, 150, 150); font: Arial; font-size: 16px;""")
-        self.stats.setText("This session stats: 0✔ 0✘")
+        # self.stats.setText("This session stats: 0✔ 0✘")
 
         # Connection of Input field receiving  'Ctrl+Enter' to function 
         shortcut = QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+Return"), self.f_in)
@@ -68,9 +68,11 @@ class Window(QtWidgets.QWidget):
     def start_training(self):
         self.select_xlsx()
 
+        self.stats.setText(self.vocab.get_status())
+
         self.b_start.hide()
 
-        self.f_out.setText(' • '+self.vocab.get_definition_bw())
+        self.f_out.setText(' • '+self.vocab.get_definition())
         self.f_in.setText("")
         
         self.b_answer.show()
@@ -87,14 +89,14 @@ class Window(QtWidgets.QWidget):
         else:
             self.fname = fname_selected
 
-        self.vocab = vt.VocabularyTrainer(self.fname)
+        self.vocab = vt.VocabularyTrainer(self.fname, key_train=0)
 
 
     def event_answer(self):
         user_answer = self.f_in.toPlainText()
-        self.f_out.append(self.vocab.check_answer(user_answer))
+        self.f_out.append(self.vocab.set_answer(user_answer))
 
-        self.stats.setText("This session stats: %d✔ %d✘"%(self.vocab.n_correct, self.vocab.n_incorrect))
+        self.stats.setText(self.vocab.get_status())
 
         self.b_answer.hide()
         self.b_next.show()
@@ -107,7 +109,7 @@ class Window(QtWidgets.QWidget):
 
     def event_next(self):
         self.f_out.append("")
-        self.f_out.append('• '+self.vocab.get_definition_bw())
+        self.f_out.append('• '+self.vocab.get_definition())
         self.f_in.setText("")
 
         self.b_answer.show()
