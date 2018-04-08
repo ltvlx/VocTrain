@@ -14,7 +14,7 @@ class VocabularyTrainer:
     training_types = ['allwords', 'badwords']
 
 
-    def __init__(self, f_inp, key_train = 1):
+    def __init__(self, f_inp, key_train):
         assert (key_train == 0) or (key_train == 1)
         self.k_train = key_train
 

@@ -66,30 +66,43 @@ class Window(QtWidgets.QWidget):
 
 
     def start_training(self):
-        self.select_xlsx()
+        fname = self.select_xlsx()
+        k_train = self.select_mode()
+        self.vocab = vt.VocabularyTrainer(fname, k_train)
 
         self.stats.setText(self.vocab.get_status())
 
         self.b_start.hide()
 
-        self.f_out.setText(' • '+self.vocab.get_definition())
+        self.f_out.append(' • '+self.vocab.get_definition())
         self.f_in.setText("")
         
         self.b_answer.show()
         self.b_stop.show()
 
-    def select_xlsx(self):
-        # Later a pop-up dialog with training programs will be here
-        # aaaa = QtWidgets.QInputDialog.getItem(self, "Select training program", "", ['1', '2', '3', '4', ], 0, False)
-        # print(aaaa)
 
+    def select_xlsx(self):
         fname_selected = QtWidgets.QFileDialog.getOpenFileName(directory='./', filter='Vocabulary in excel table (*.xlsx *.xls)')[0]
         if fname_selected == '':
             self.close()
         else:
-            self.fname = fname_selected
+            return fname_selected
 
-        self.vocab = vt.VocabularyTrainer(self.fname, key_train=0)
+
+    def select_mode(self):
+        modes = ['All words', 'Bad words', ]
+        descriptions = ['In this mode you need to translate all words from your vocabulary provided to you in random order.',
+                        'In this mode you will get random words from your vocabulary. Less known words will be given more often.']
+        
+        self.dialog = QtWidgets.QInputDialog(self)
+        resolution = QtWidgets.QDesktopWidget().screenGeometry()
+        self.dialog.move((resolution.width() / 2) - (self.dialog.width() / 2),(resolution.height() / 2) - (self.dialog.height() / 2))
+        self.dialog.setStyleSheet("""background-color: rgb(240, 240, 240); font: Arial; font-size: 16px;""")
+        selected_mode = self.dialog.getItem(self.dialog, "Mode selector", "Select training program     ", modes, 0, False)[0]
+        i = modes.index(selected_mode)
+        self.f_out.append("'%s' training mode selected."%modes[i])
+        self.f_out.append(descriptions[i] + "\n")
+        return i
 
 
     def event_answer(self):
