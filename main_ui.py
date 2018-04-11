@@ -66,9 +66,9 @@ class Window(QtWidgets.QWidget):
 
 
     def start_training(self):
-        fname = self.select_xlsx()
+        self.fname = self.select_xlsx()
         k_train = self.select_mode()
-        self.vocab = vt.VocabularyTrainer(fname, k_train)
+        self.vocab = vt.VocabularyTrainer(self.fname, k_train)
 
         self.stats.setText(self.vocab.get_status())
 
