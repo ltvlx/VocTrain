@@ -30,19 +30,18 @@ class VocabularyTrainer:
             for name in xls.sheet_names:
                 self.sheets[name] = pd.read_excel(xls, name)
                 self.n_words_total += len(self.sheets[name].index)
-                self.sheets[name]['correct'] = self.sheets[name]['correct'].fillna(1)
-                self.sheets[name]['incorrect'] = self.sheets[name]['incorrect'].fillna(1)
-                if 'coeff' in self.sheets[name]:
-                    self.sheets[name]['coeff'] = pd.to_numeric(self.sheets[name]['coeff'], downcast='float')
+                if ('correct' in self.sheets[name]) and ('incorrect' in self.sheets[name]):
+                    self.sheets[name]['correct'] = self.sheets[name]['correct'].fillna(1)
+                    self.sheets[name]['incorrect'] = self.sheets[name]['incorrect'].fillna(1)
                 else:
-                    # self.sheets[name]['coeff'] = self.sheets[name].apply()
-                    self.sheets[name]['coeff'] = 1
-                    self.sheets[name]['coeff'] = pd.to_numeric(self.sheets[name]['coeff'], downcast='float')
-                    for i in self.sheets[name].index:
-                                _cor = self.sheets[name].at[i, 'correct']
-                                _inc = self.sheets[name].at[i, 'incorrect']
-                                self.sheets[name].at[i, 'coeff'] = get_coeff(_cor, _inc)
+                    self.sheets[name]['correct'] = 0
+                    self.sheets[name]['incorrect'] = 0
 
+                self.sheets[name]['coeff'] = 1.0
+                for i in self.sheets[name].index:
+                            _cor = self.sheets[name].at[i, 'correct']
+                            _inc = self.sheets[name].at[i, 'incorrect']
+                            self.sheets[name].at[i, 'coeff'] = get_coeff(_cor, _inc)
 
         print("Total number of words in your dictionary is %d"%self.n_words_total)
 
@@ -235,8 +234,8 @@ def is_correct(word, uword):
 
 def get_coeff(_corr, _incorr):
     # Function that defines 'coeff = f(correct, incorrect)
-    if (_corr + _incorr) <= 3:
-        # word was asked once time or less
+    if (_corr + _incorr) <= 1:
+        # word was asked one time or less
         return 5.0
     else:
         return _incorr - _corr * 0.6
