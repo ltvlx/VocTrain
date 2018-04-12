@@ -76,7 +76,7 @@ class VocabularyTrainer:
             self.sheets[_s].at[_i, 'incorrect'] += 1
             self.l_cor.append(self.l_cor[-1])
             self.l_inc.append(self.l_inc[-1] + 1)
-            result = "You gave no answer,\nthe right was '%s'"%word
+            result = "You gave no answer, the right was \n'%s'"%word
         else:
             if is_correct(word, user_answer):
                 self.sheets[_s].at[_i, 'correct'] += 1

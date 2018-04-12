@@ -13,7 +13,8 @@ class Window(QtWidgets.QWidget):
     def init_ui(self):
         # basic geometry parameters of window and widgets
         margin = 25
-        main_w, main_h = 560, 550
+        main_w, main_h = 550, 600
+        main_w, main_h = self.size().width(), self.size().height()
         btn_h = 60
         out_h = 200
         in_h = 100
