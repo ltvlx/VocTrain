@@ -5,8 +5,6 @@ import numpy as np
 class VocabularyTrainer:
     sheets = {}
     n_words_total = 0
-    n_correct = 0
-    n_incorrect = 0
 
     l_cor = [0]
     l_inc = [0]
@@ -18,6 +16,13 @@ class VocabularyTrainer:
 
 
     def __init__(self, f_inp, key_train):
+        """
+        Vocabulary trainer class  
+        'f_inp' is a path to *.xlsx file with your vocabulary.  
+        'key_train' is a key for training mode  
+           0 for all words training  
+           1 for bad words training
+        """
         assert (key_train == 0) or (key_train == 1)
         self.k_train = key_train
 
@@ -58,14 +63,12 @@ class VocabularyTrainer:
         
         if user_answer == '':
             self.sheets[_s].at[_i, 'incorrect'] += 1
-            self.n_incorrect += 1      
             self.l_cor.append(self.l_cor[-1])
             self.l_inc.append(self.l_inc[-1] + 1)
             result = "You gave no answer,\nthe right was '%s'"%word
         else:
             if is_correct(word, user_answer):
                 self.sheets[_s].at[_i, 'correct'] += 1
-                self.n_correct += 1
                 self.l_cor.append(self.l_cor[-1] + 1)
                 self.l_inc.append(self.l_inc[-1])
                 result = "Correct!\n'%s'"%word
@@ -73,7 +76,6 @@ class VocabularyTrainer:
                 self.l_cor.append(self.l_cor[-1])
                 self.l_inc.append(self.l_inc[-1] + 1)
                 self.sheets[_s].at[_i, 'incorrect'] += 1
-                self.n_incorrect += 1
                 result =  "Incorrect!\nYou said '%s', right words was '%s'"%(user_answer, word)
 
         # Modify coeff 
@@ -100,9 +102,9 @@ class VocabularyTrainer:
 
     def get_status(self):
         if self.k_train == 0:
-            return "This session stats: %d✔ %d✘ %d❓"%(self.n_correct, self.n_incorrect, self.n_words_left)
+            return "This session stats: %d✔ %d✘ %d❓"%(self.l_cor[-1], self.l_inc[-1], self.n_words_left)
         elif self.k_train == 1:
-            return "This session stats: %d✔ %d✘"%(self.n_correct, self.n_incorrect)
+            return "This session stats: %d✔ %d✘"%(self.l_cor[-1], self.l_inc[-1])
                     
 
 

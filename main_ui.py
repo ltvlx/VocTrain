@@ -60,10 +60,9 @@ class Window(QtWidgets.QWidget):
         self.stats.setStyleSheet("""border: 2px solid rgb(150, 150, 150); font: Arial; font-size: 16px;""")
         self.stats.hide()
 
-        # Connection of Input field receiving  'Ctrl+Enter' to function 
+        # Connection of Input field receiving  'Ctrl+Enter' to function
         shortcut = QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+Return"), self.f_in)
         shortcut.activated.connect(self.ctrl_enter_pressed)
-
 
         # Stats button
         self.b_stats = QtWidgets.QPushButton(self)
@@ -75,15 +74,6 @@ class Window(QtWidgets.QWidget):
         self.b_stats.clicked.connect(self.show_stats_plot)
 
         self.show()
-
-
-    def show_stats_plot(self):
-        self.stats_plot = pw.PlotWindow()
-
-        self.stats_plot.plot(self.vocab.l_cor, self.vocab.l_inc)
-        self.stats_plot.show()
-
-        # del self.stats_plot
 
 
     def start_training(self):
@@ -141,6 +131,7 @@ class Window(QtWidgets.QWidget):
 
     def event_stop(self):
         self.vocab.save_data(self.fname)
+        del self.stats_plot
         self.close()
 
 
@@ -153,13 +144,20 @@ class Window(QtWidgets.QWidget):
         self.b_next.hide()
 
 
+    def show_stats_plot(self):
+        self.stats_plot = pw.PlotWindow()
+
+        self.stats_plot.plot(self.vocab.l_cor, self.vocab.l_inc)
+        self.stats_plot.show()
+
+
     def ctrl_enter_pressed(self):
         if self.b_answer.isVisible():
             self.event_answer()
         elif self.b_next.isVisible():
             self.event_next()
         else:
-            print("Nothing is active yet!")
+            self.start_training()
 
 
 

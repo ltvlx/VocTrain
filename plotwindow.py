@@ -11,7 +11,7 @@ class PlotWindow(QtWidgets.QWidget):
 
         self.setFixedSize(500, 500)
         self.setWindowTitle("Session statistics")
-        # self.setStyleSheet("""background-color: rgb(255, 255, 255)""")
+        self.setStyleSheet("""background-color: rgb(255, 255, 255)""")
 
         # a figure instance to plot on
         self.figure = Figure()
@@ -30,14 +30,12 @@ class PlotWindow(QtWidgets.QWidget):
 
 
     def plot(self, f1, f2):
-
-        # ax = self.figure.add_subplot(111)
         ax = self.figure.subplots(nrows=1, ncols=1)
         ax.set_xlabel("Answers")
         ax.set_ylabel("Cumulative results")
 
-        ax.plot(f1, color='C0', marker='o', linestyle='solid', linewidth=3, markersize=4, label='Correct')
-        ax.plot(f2, color='C3', marker='o', linestyle='solid', linewidth=3, markersize=4, label='Incorrect')
+        ax.plot(f1, color='C0', linestyle='solid', linewidth=3, label='Correct')
+        ax.plot(f2, color='C3', linestyle='solid', linewidth=3, label='Incorrect')
         ax.xaxis.set_major_locator(MaxNLocator(integer=True))
         ax.yaxis.set_major_locator(MaxNLocator(integer=True))
         ax.legend()
