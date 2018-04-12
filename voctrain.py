@@ -8,6 +8,9 @@ class VocabularyTrainer:
     n_correct = 0
     n_incorrect = 0
 
+    l_cor = [0]
+    l_inc = [0]
+
     a_i = -1 # index of words being questioned
 
     k_train = 0 # Train mode
@@ -55,14 +58,20 @@ class VocabularyTrainer:
         
         if user_answer == '':
             self.sheets[_s].at[_i, 'incorrect'] += 1
-            self.n_incorrect += 1            
+            self.n_incorrect += 1      
+            self.l_cor.append(self.l_cor[-1])
+            self.l_inc.append(self.l_inc[-1] + 1)
             result = "You gave no answer,\nthe right was '%s'"%word
         else:
             if is_correct(word, user_answer):
                 self.sheets[_s].at[_i, 'correct'] += 1
                 self.n_correct += 1
+                self.l_cor.append(self.l_cor[-1] + 1)
+                self.l_inc.append(self.l_inc[-1])
                 result = "Correct!\n'%s'"%word
             else:
+                self.l_cor.append(self.l_cor[-1])
+                self.l_inc.append(self.l_inc[-1] + 1)
                 self.sheets[_s].at[_i, 'incorrect'] += 1
                 self.n_incorrect += 1
                 result =  "Incorrect!\nYou said '%s', right words was '%s'"%(user_answer, word)
@@ -212,7 +221,11 @@ def is_correct(word, uword):
 
 def get_coeff(_corr, _incorr):
     # Function that defines 'coeff = f(correct, incorrect)
-    return _incorr - _corr * 0.6
+    if (_corr + _incorr) <= 3:
+        # word was asked once time or less
+        return 5.0
+    else:
+        return _incorr - _corr * 0.6
 
 def get_prob(_coeff):
     # Function that defines 'prob = f(coeff)'

@@ -2,7 +2,7 @@ import voctrain as vt
 
 
 
-a = vt.VocabularyTrainer('words_11.xlsx')
+a = vt.VocabularyTrainer('words_11.xlsx', 1)
 
 
 for _ in range(3):
