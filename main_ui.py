@@ -52,6 +52,7 @@ class Window(QtWidgets.QWidget):
         self.b_next.clicked.connect(self.event_next)
         self.b_next.hide()
 
+        # Stats panel
         self.stats = QtWidgets.QLabel(self)
         self.stats.setGeometry(-2, 530, 564, 22)
         self.stats.setAlignment(QtCore.Qt.AlignRight)
@@ -61,6 +62,19 @@ class Window(QtWidgets.QWidget):
         # Connection of Input field receiving  'Ctrl+Enter' to function 
         shortcut = QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+Return"), self.f_in)
         shortcut.activated.connect(self.ctrl_enter_pressed)
+
+
+        # Stats button
+        self.b_stats = QtWidgets.QPushButton(self)
+        self.b_stats.setGeometry(-2, 530, 100, 22)
+        self.b_stats.setStyleSheet("""border: 2px solid rgb(150, 150, 150); background-color: rgb(240, 240, 240); font: Arial; font-size: 16px;""")
+        self.b_stats.setText("plot stats")
+
+        self.stats_plot = PlotWindow()
+        # self.stats_plot.plot()
+        # self.b_stats.clicked.connect(self.stats_plot.show)
+        self.b_stats.clicked.connect(self.stats_plot.plot)
+
 
         self.show()
 
@@ -136,6 +150,71 @@ class Window(QtWidgets.QWidget):
             self.event_next()
         else:
             print("Nothing is active yet!")
+
+
+from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qt4agg import NavigationToolbar2QT as NavigationToolbar
+from matplotlib.figure import Figure
+
+
+class PlotWindow(QtWidgets.QWidget):
+
+    def __init__(self):
+        super().__init__()
+
+        self.setFixedSize(400, 400)
+        self.setWindowTitle("Learning stats")
+        self.setStyleSheet("""background-color: rgb(255, 255, 255)""")
+
+        # a figure instance to plot on
+        self.figure = Figure()
+
+        # this is the Canvas Widget that displays the `figure`
+        # it takes the `figure` instance as a parameter to __init__
+        self.canvas = FigureCanvas(self.figure)
+
+        # this is the Navigation widget
+        # it takes the Canvas widget and a parent
+        # self.toolbar = NavigationToolbar(self.canvas, self)
+
+
+        # set the layout
+        layout = QtWidgets.QVBoxLayout()
+
+        # layout.addWidget(self.toolbar)
+        layout.addWidget(self.canvas)
+
+        # Just some button connected to `plot` method
+        # self.button = QtWidgets.QPushButton('Plot')
+        # self.button.clicked.connect(self.plot)
+        # layout.addWidget(self.button)
+
+        self.setLayout(layout)
+
+
+    def plot(self):
+        import numpy as np
+        # random data
+        data = np.random.randint(0, 100, size=20)
+
+        # create an axis
+        ax = self.figure.add_subplot(111)
+
+        # discards the old graph
+        ax.clear()
+
+        # plot data
+        ax.plot(data, '*-')
+
+        # refresh canvas
+        self.canvas.draw()
+        self.show()
+
+
+
+
+
+
 
 
 app = QtWidgets.QApplication(sys.argv)
