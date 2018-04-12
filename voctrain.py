@@ -32,7 +32,18 @@ class VocabularyTrainer:
                 self.n_words_total += len(self.sheets[name].index)
                 self.sheets[name]['correct'] = self.sheets[name]['correct'].fillna(1)
                 self.sheets[name]['incorrect'] = self.sheets[name]['incorrect'].fillna(1)
-                self.sheets[name]['coeff'] = pd.to_numeric(self.sheets[name]['coeff'], downcast='float')
+                if 'coeff' in self.sheets[name]:
+                    self.sheets[name]['coeff'] = pd.to_numeric(self.sheets[name]['coeff'], downcast='float')
+                else:
+                    # self.sheets[name]['coeff'] = self.sheets[name].apply()
+                    self.sheets[name]['coeff'] = 1
+                    self.sheets[name]['coeff'] = pd.to_numeric(self.sheets[name]['coeff'], downcast='float')
+                    for i in self.sheets[name].index:
+                                _cor = self.sheets[name].at[i, 'correct']
+                                _inc = self.sheets[name].at[i, 'incorrect']
+                                self.sheets[name].at[i, 'coeff'] = get_coeff(_cor, _inc)
+
+
         print("Total number of words in your dictionary is %d"%self.n_words_total)
 
         if self.k_train == 0:
@@ -47,7 +58,8 @@ class VocabularyTrainer:
         """
         with pd.ExcelWriter(f_out) as writer:
             for name in self.sheets:
-                self.sheets[name].to_excel(writer, sheet_name=name)
+                df = self.sheets[name].drop(['coeff'], axis=1)
+                df.to_excel(writer, sheet_name=name)
 
 
     def check_answer(self, user_answer):

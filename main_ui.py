@@ -131,7 +131,10 @@ class Window(QtWidgets.QWidget):
 
     def event_stop(self):
         self.vocab.save_data(self.fname)
-        del self.stats_plot
+        try:
+            del self.stats_plot
+        except:
+            pass
         self.close()
 
 
