@@ -118,6 +118,31 @@ class VocabularyTrainer:
             return "This session stats: %d✔ %d✘"%(self.l_cor[-1], self.l_inc[-1])
                     
 
+    def get_most_unknown(self, n):
+        if n <= 0:
+            print("get_most_unknown() can not print less then 1 word")
+            return
+
+        df = pd.DataFrame(columns=['word', 'definition', 'coeff'])
+        for name in self.sheets:
+            df1 = self.sheets[name][['word', 'definition', 'coeff']]
+            df = df.append(df1, ignore_index=True)
+        
+        if n > len(df.index):
+            print()
+            n = len(df.index)
+        
+        df = df.sort_values(by=['coeff'], ascending=False)[:n].reset_index(drop=True)
+        result = 'The worst known words:\n\n'
+        for i in range(n):
+            result += "%d. %s\n%s\n\n"%(i+1, df.at[i, 'word'], df.at[i, 'definition'])
+
+        return result[:-2]
+
+
+
+
+
 
     #########################################################################################
     # Mode 0. Revision of all the words
@@ -158,8 +183,6 @@ class VocabularyTrainer:
             self.a_names.pop(self.a_i)
             self.a_index.pop(self.a_i)
             self.n_words_left -= 1
-
-        print("Words left: %d"%self.n_words_left)
         return result
 
 

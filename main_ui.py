@@ -30,11 +30,17 @@ class Window(QtWidgets.QWidget):
         btn_2_w = (main_w - margin * 3) * 0.6
         btn_1_x = margin
         btn_2_x = btn_1_x + btn_1_w + margin
+        plot_w = 100
+        stat_x = plot_w-6
+        stat_w = 100
 
 
         self.setFixedSize(main_w, main_h)
         self.setWindowTitle("Train vocabulary")
-        
+        resolution = QtWidgets.QDesktopWidget().screenGeometry()
+        self.move((resolution.width() / 2) - (self.width() / 2),(resolution.height() / 2) - (self.height() / 2))
+        print(self.pos())
+
         self.f_out = QtWidgets.QTextBrowser(self)
         self.f_out.setGeometry(margin, margin, out_w, out_h)
         self.f_out.setStyleSheet("""border: 1px solid; font: Arial; font-size: 16px;""")
@@ -84,16 +90,31 @@ class Window(QtWidgets.QWidget):
         shortcut = QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+Return"), self.f_in)
         shortcut.activated.connect(self.ctrl_enter_pressed)
 
+        # Plot button
+        self.b_plot = QtWidgets.QPushButton(self)
+        self.b_plot.setGeometry(-2, main_h - bar_h, plot_w, bar_h + 2)
+        self.b_plot.setStyleSheet("""border: 2px solid rgb(150, 150, 150); background-color: rgb(240, 240, 240); font: Arial; font-size: 16px;""")
+        self.b_plot.setText("plot stats")
+        self.b_plot.hide()
+        self.b_plot.clicked.connect(self.show_stats_plot)
+
         # Stats button
         self.b_stats = QtWidgets.QPushButton(self)
-        self.b_stats.setGeometry(-2, main_h - bar_h, 100, bar_h + 2)
+        self.b_stats.setGeometry(stat_x+2, main_h - bar_h, stat_w, bar_h + 2)
         self.b_stats.setStyleSheet("""border: 2px solid rgb(150, 150, 150); background-color: rgb(240, 240, 240); font: Arial; font-size: 16px;""")
-        self.b_stats.setText("show stats")
+        self.b_stats.setText("bad words")
         self.b_stats.hide()
-        
-        self.b_stats.clicked.connect(self.show_stats_plot)
+        self.b_stats.clicked.connect(self.show_wordstats)
 
         self.show()
+
+
+    def show_wordstats(self):
+        print(1)
+        self.stats_plot = pw.WordstatsWindow()
+        self.stats_plot.show_stats(self.vocab.get_most_unknown(10))
+        print(2)
+        self.stats_plot.show()
 
 
     def start_training(self):
@@ -112,6 +133,7 @@ class Window(QtWidgets.QWidget):
         
         self.b_answer.show()
         self.b_stop.show()
+        self.b_plot.show()
         self.b_stats.show()
         self.stats.show()
 
