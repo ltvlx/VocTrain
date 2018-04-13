@@ -1,7 +1,10 @@
 import sys
 from PyQt5 import QtWidgets, QtCore, QtGui
 import voctrain as vt
-import plotwindow as pw
+from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.figure import Figure
+from matplotlib.ticker import MaxNLocator
+
 
 
 class Window(QtWidgets.QWidget):
@@ -39,7 +42,6 @@ class Window(QtWidgets.QWidget):
         self.setWindowTitle("Train vocabulary")
         resolution = QtWidgets.QDesktopWidget().screenGeometry()
         self.move((resolution.width() / 2) - (self.width() / 2),(resolution.height() / 2) - (self.height() / 2))
-        print(self.pos())
 
         self.f_out = QtWidgets.QTextBrowser(self)
         self.f_out.setGeometry(margin, margin, out_w, out_h)
@@ -107,14 +109,6 @@ class Window(QtWidgets.QWidget):
         self.b_stats.clicked.connect(self.show_wordstats)
 
         self.show()
-
-
-    def show_wordstats(self):
-        print(1)
-        self.stats_plot = pw.WordstatsWindow()
-        self.stats_plot.show_stats(self.vocab.get_most_unknown(10))
-        print(2)
-        self.stats_plot.show()
 
 
     def start_training(self):
@@ -191,10 +185,49 @@ class Window(QtWidgets.QWidget):
 
 
     def show_stats_plot(self):
-        self.stats_plot = pw.PlotWindow()
+        wordstat_w, wordstat_h = 500, 500
 
-        self.stats_plot.plot(self.vocab.l_cor, self.vocab.l_inc)
-        self.stats_plot.show()
+        plotwindow = QtWidgets.QDialog(self, QtCore.Qt.WindowCloseButtonHint)
+        plotwindow.setWindowTitle("Learning dynamics")        
+        plotwindow.setFixedSize(wordstat_w, wordstat_h)
+        plotwindow.setStyleSheet("""background-color: rgb(255, 255, 255)""")
+
+        # adding stuff
+        pw_figure = Figure()
+        pw_canvas = FigureCanvas(pw_figure)
+        layout = QtWidgets.QVBoxLayout(plotwindow)
+        layout.addWidget(pw_canvas)
+        plotwindow.setLayout(layout)
+
+        # Plotting
+        ax = pw_figure.subplots(nrows=1, ncols=1)
+        ax.set_xlabel("Answers")
+        ax.set_ylabel("Cumulative results")
+
+        ax.plot(self.vocab.l_cor, color='C0', linestyle='solid', linewidth=3, label='Correct')
+        ax.plot(self.vocab.l_inc, color='C3', linestyle='solid', linewidth=3, label='Incorrect')
+        ax.xaxis.set_major_locator(MaxNLocator(integer=True))
+        ax.yaxis.set_major_locator(MaxNLocator(integer=True))
+        ax.legend()
+        pw_figure.tight_layout()
+
+        plotwindow.exec()
+
+
+    def show_wordstats(self):
+        margin = 0
+        wordstat_w, wordstat_h = 300, 600
+        disp_w = wordstat_w - 2 * margin
+        disp_h = wordstat_h
+
+        wordstats = QtWidgets.QDialog(self, QtCore.Qt.WindowCloseButtonHint)
+        wordstats.setWindowTitle("Vocabulary statistics")        
+        wordstats.setFixedSize(wordstat_w, wordstat_h)
+        display = QtWidgets.QTextBrowser(wordstats)
+        display.setGeometry(margin, margin, disp_w, disp_h)
+        display.setStyleSheet("""background-color: rgb(240, 240, 240);font: Arial; font-size: 16px;""")
+        display.setText(self.vocab.get_most_unknown(10))
+        wordstats.exec()
 
 
     def ctrl_enter_pressed(self):
