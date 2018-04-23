@@ -46,9 +46,9 @@ class VocabularyTrainer:
         print("Total number of words in your dictionary is %d"%self.n_words_total)
 
         if self.k_train == 0:
-            self.init_training_aw()
+            self.__init_training_aw()
         elif self.k_train == 1:
-            self.init_training_bw()
+            self.__init_training_bw()
 
 
     def save_data(self, f_out):
@@ -72,43 +72,32 @@ class VocabularyTrainer:
         word = self.sheets[_s].at[_i, 'word']               
         user_answer = user_answer.strip()
         
-        if user_answer == '':
-            self.sheets[_s].at[_i, 'incorrect'] += 1
+        if is_correct(word, user_answer):
+            self.sheets[_s].at[_i, 'correct'] += 1
+            self.l_cor.append(self.l_cor[-1] + 1)
+            self.l_inc.append(self.l_inc[-1])
+            self.__update_coeff()
+            return True
+        else:
             self.l_cor.append(self.l_cor[-1])
             self.l_inc.append(self.l_inc[-1] + 1)
-            result = "You gave no answer, the right was \n'%s'"%word
-        else:
-            if is_correct(word, user_answer):
-                self.sheets[_s].at[_i, 'correct'] += 1
-                self.l_cor.append(self.l_cor[-1] + 1)
-                self.l_inc.append(self.l_inc[-1])
-                result = "Correct!\n'%s'"%word
-            else:
-                self.l_cor.append(self.l_cor[-1])
-                self.l_inc.append(self.l_inc[-1] + 1)
-                self.sheets[_s].at[_i, 'incorrect'] += 1
-                result =  "Incorrect!\nYou said '%s', right words was '%s'"%(user_answer, word)
-
-        # Modify coeff 
-        _cor = self.sheets[_s].at[_i, 'correct']
-        _inc = self.sheets[_s].at[_i, 'incorrect']
-        self.sheets[_s].at[_i, 'coeff'] = get_coeff(_cor, _inc)
-
-        return result
+            self.sheets[_s].at[_i, 'incorrect'] += 1
+            self.__update_coeff()
+            return False
 
 
     def get_definition(self):
         if self.k_train == 0:
-            return self.get_definition_aw()
+            return self.__get_definition_aw()
         elif self.k_train == 1:
-            return self.get_definition_bw()
+            return self.__get_definition_bw()
 
 
     def set_answer(self, user_answer):
         if self.k_train == 0:
-            return self.set_answer_aw(user_answer)
+            return self.__set_answer_aw(user_answer)
         elif self.k_train == 1:
-            return self.set_answer_bw(user_answer)
+            return self.__set_answer_bw(user_answer)
 
 
     def get_status(self):
@@ -140,14 +129,36 @@ class VocabularyTrainer:
         return result[:-2]
 
 
+    def __get_word_info(self):
+        _i = self.a_index[self.a_i]
+        _s = self.a_names[self.a_i]
+
+        w_row = self.sheets[_s].loc[_i].dropna()
+        cols = [x for x in list(w_row.keys()) if x not in ['correct', 'incorrect', 'definition', 'coeff', 'word']]
+
+        res = w_row['word']
+
+        if 'forms' in cols:
+            res += ', ' + w_row['forms'] + '\n'
+            cols.remove('forms')
+
+        for field in cols:
+            res += field + str(w_row[field]) + '\n'
+        return res
 
 
+    def __update_coeff(self):
+        _i = self.a_index[self.a_i]
+        _s = self.a_names[self.a_i]
+        _cor = self.sheets[_s].at[_i, 'correct']
+        _inc = self.sheets[_s].at[_i, 'incorrect']
+        self.sheets[_s].at[_i, 'coeff'] = get_coeff(_cor, _inc)
 
 
     #########################################################################################
     # Mode 0. Revision of all the words
 
-    def init_training_aw(self):
+    def __init_training_aw(self):
         self.a_i = 0          # index of current word
         self.a_names = []     # three lists which form a single table of all sheet names
         self.a_index = []     # indexes of words in those sheets and coefficients of words
@@ -160,7 +171,7 @@ class VocabularyTrainer:
                 self.a_index.append(_i)
     
 
-    def get_definition_aw(self):
+    def __get_definition_aw(self):
         if self.n_words_left == 0:
             return "You have checked all the words! Save and exit"
         self.a_i = np.random.randint(self.n_words_left)
@@ -171,25 +182,24 @@ class VocabularyTrainer:
         return self.sheets[_s].at[_i, 'definition']      
 
 
-    def set_answer_aw(self, user_answer):
+    def __set_answer_aw(self, user_answer):
         if self.n_words_left == 0:
             return "You have checked all the words! Save and exit"
-        result = self.check_answer(user_answer)
 
-        # TO FIX LATER.
-        # check_answer should return True/False  and probably a word
-        # Then, another function should print output
-        if result.find("Correct") != -1:
+        if self.check_answer(user_answer):
+            res = "Correct!\n" + self.__get_word_info()
             self.a_names.pop(self.a_i)
             self.a_index.pop(self.a_i)
             self.n_words_left -= 1
-        return result
-
+        else:
+            res = "Incorrect!\n" + self.__get_word_info()
+        return res
+            
 
     #########################################################################################
     # Mode 1. Working with badly known words
 
-    def init_training_bw(self):
+    def __init_training_bw(self):
         self.a_i = 0          # index of current word
         self.a_names = []     # three lists which form a single table of all sheet names
         self.a_index = []     # indexes of words in those sheets and coefficients of words
@@ -208,7 +218,7 @@ class VocabularyTrainer:
         self.a_probs = [x/s for x in self.a_probs]        
 
 
-    def recalc_probs(self):
+    def __recalc_probs(self):
         for i in range(self.n_words_total):
             _i = self.a_index[i]
             _s = self.a_names[i]
@@ -218,19 +228,21 @@ class VocabularyTrainer:
         self.a_probs = [x/s for x in self.a_probs]    
 
 
-    def get_definition_bw(self):
+    def __get_definition_bw(self):
         self.a_i = np.random.choice(range(self.n_words_total), p=self.a_probs)
         _i = self.a_index[self.a_i]
         _s = self.a_names[self.a_i]
 
         return self.sheets[_s].at[_i, 'definition']        
 
-    def set_answer_bw(self, user_answer):
-        result = self.check_answer(user_answer)
-        self.recalc_probs()
-        return result
 
-
+    def __set_answer_bw(self, user_answer):
+        if self.check_answer(user_answer):
+            res = "Correct!\n" + self.__get_word_info()
+        else:
+            res = "Incorrect!\n" + self.__get_word_info()
+        self.__recalc_probs()
+        return res
 
 
 
