@@ -6,8 +6,8 @@ class VocabularyTrainer:
     sheets = {}
     n_words_total = 0
 
-    l_cor = [0]
-    l_inc = [0]
+    n_cor = 0
+    n_inc = 0
 
     a_i = -1 # index of words being questioned
 
@@ -74,14 +74,12 @@ class VocabularyTrainer:
         
         if is_correct(word, user_answer):
             self.sheets[_s].at[_i, 'correct'] += 1
-            self.l_cor.append(self.l_cor[-1] + 1)
-            self.l_inc.append(self.l_inc[-1])
+            self.n_cor += 1
             self.__update_coeff()
             return True
         else:
-            self.l_cor.append(self.l_cor[-1])
-            self.l_inc.append(self.l_inc[-1] + 1)
             self.sheets[_s].at[_i, 'incorrect'] += 1
+            self.n_inc += 1
             self.__update_coeff()
             return False
 
@@ -102,9 +100,9 @@ class VocabularyTrainer:
 
     def get_status(self):
         if self.k_train == 0:
-            return "This session stats: %d✔ %d✘ %d❓"%(self.l_cor[-1], self.l_inc[-1], self.n_words_left)
+            return "This session stats: %d✔ %d✘ %d❓"%(self.n_cor, self.n_inc, self.n_words_left)
         elif self.k_train == 1:
-            return "This session stats: %d✔ %d✘"%(self.l_cor[-1], self.l_inc[-1])
+            return "This session stats: %d✔ %d✘"%(self.n_cor, self.n_inc)
                     
 
     def get_most_unknown(self, n):

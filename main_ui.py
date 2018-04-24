@@ -1,9 +1,6 @@
 import sys
 from PyQt5 import QtWidgets, QtCore, QtGui
 import voctrain as vt
-from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.figure import Figure
-from matplotlib.ticker import MaxNLocator
 
 
 
@@ -33,10 +30,7 @@ class Window(QtWidgets.QWidget):
         btn_2_w = (main_w - margin * 3) * 0.6
         btn_1_x = margin
         btn_2_x = btn_1_x + btn_1_w + margin
-        plot_w = 100
-        stat_x = plot_w-6
         stat_w = 100
-
 
         self.setFixedSize(main_w, main_h)
         self.setWindowTitle("Train vocabulary")
@@ -92,17 +86,9 @@ class Window(QtWidgets.QWidget):
         shortcut = QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+Return"), self.f_in)
         shortcut.activated.connect(self.ctrl_enter_pressed)
 
-        # Plot button
-        self.b_plot = QtWidgets.QPushButton(self)
-        self.b_plot.setGeometry(-2, main_h - bar_h, plot_w, bar_h + 2)
-        self.b_plot.setStyleSheet("""border: 2px solid rgb(150, 150, 150); background-color: rgb(240, 240, 240); font: Arial; font-size: 16px;""")
-        self.b_plot.setText("plot stats")
-        self.b_plot.hide()
-        self.b_plot.clicked.connect(self.show_stats_plot)
-
         # Stats button
         self.b_stats = QtWidgets.QPushButton(self)
-        self.b_stats.setGeometry(stat_x+2, main_h - bar_h, stat_w, bar_h + 2)
+        self.b_stats.setGeometry(-2, main_h - bar_h, stat_w, bar_h + 2)
         self.b_stats.setStyleSheet("""border: 2px solid rgb(150, 150, 150); background-color: rgb(240, 240, 240); font: Arial; font-size: 16px;""")
         self.b_stats.setText("bad words")
         self.b_stats.hide()
@@ -127,7 +113,6 @@ class Window(QtWidgets.QWidget):
         
         self.b_answer.show()
         self.b_stop.show()
-        self.b_plot.show()
         self.b_stats.show()
         self.stats.show()
 
@@ -182,36 +167,6 @@ class Window(QtWidgets.QWidget):
 
         self.b_answer.show()
         self.b_next.hide()
-
-
-    def show_stats_plot(self):
-        wordstat_w, wordstat_h = 500, 500
-
-        plotwindow = QtWidgets.QDialog(self, QtCore.Qt.WindowCloseButtonHint)
-        plotwindow.setWindowTitle("Learning dynamics")        
-        plotwindow.setFixedSize(wordstat_w, wordstat_h)
-        plotwindow.setStyleSheet("""background-color: rgb(255, 255, 255)""")
-
-        # adding stuff
-        pw_figure = Figure()
-        pw_canvas = FigureCanvas(pw_figure)
-        layout = QtWidgets.QVBoxLayout(plotwindow)
-        layout.addWidget(pw_canvas)
-        plotwindow.setLayout(layout)
-
-        # Plotting
-        ax = pw_figure.subplots(nrows=1, ncols=1)
-        ax.set_xlabel("Answers")
-        ax.set_ylabel("Cumulative results")
-
-        ax.plot(self.vocab.l_cor, color='C0', linestyle='solid', linewidth=3, label='Correct')
-        ax.plot(self.vocab.l_inc, color='C3', linestyle='solid', linewidth=3, label='Incorrect')
-        ax.xaxis.set_major_locator(MaxNLocator(integer=True))
-        ax.yaxis.set_major_locator(MaxNLocator(integer=True))
-        ax.legend()
-        pw_figure.tight_layout()
-
-        plotwindow.exec()
 
 
     def show_wordstats(self):
