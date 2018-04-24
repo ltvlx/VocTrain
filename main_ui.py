@@ -108,7 +108,7 @@ class Window(QtWidgets.QWidget):
 
         self.b_start.hide()
 
-        self.f_out.append(' • '+self.vocab.get_definition())
+        self.f_out.append(' • ' + self.vocab.get_definition())
         self.f_in.setText("")
         
         self.b_answer.show()
@@ -144,7 +144,7 @@ class Window(QtWidgets.QWidget):
     def event_answer(self):
         user_answer = self.f_in.toPlainText()
         self.f_out.append(self.vocab.set_answer(user_answer))
-
+        
         self.stats.setText(self.vocab.get_status())
 
         self.b_answer.hide()
