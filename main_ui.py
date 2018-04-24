@@ -30,7 +30,7 @@ class Window(QtWidgets.QWidget):
         btn_2_w = (main_w - margin * 3) * 0.6
         btn_1_x = margin
         btn_2_x = btn_1_x + btn_1_w + margin
-        stat_w = 100
+        stat_w = 150
 
         self.setFixedSize(main_w, main_h)
         self.setWindowTitle("Train vocabulary")
@@ -90,9 +90,9 @@ class Window(QtWidgets.QWidget):
         self.b_stats = QtWidgets.QPushButton(self)
         self.b_stats.setGeometry(-2, main_h - bar_h, stat_w, bar_h + 2)
         self.b_stats.setStyleSheet("""border: 2px solid rgb(150, 150, 150); background-color: rgb(240, 240, 240); font: Arial; font-size: 16px;""")
-        self.b_stats.setText("bad words")
+        self.b_stats.setText("vocabulary stats")
         self.b_stats.hide()
-        self.b_stats.clicked.connect(self.show_wordstats)
+        self.b_stats.clicked.connect(self.show_vocab_stats)
 
         self.show()
 
@@ -104,13 +104,11 @@ class Window(QtWidgets.QWidget):
         
         self.vocab = vt.VocabularyTrainer(self.fname, k_train)
         
-        self.stats.setText(self.vocab.get_status())
-
-        self.b_start.hide()
-
         self.f_out.append(' • ' + self.vocab.get_definition())
         self.f_in.setText("")
         
+        self.stats.setText(self.vocab.get_status())
+        self.b_start.hide()
         self.b_answer.show()
         self.b_stop.show()
         self.b_stats.show()
@@ -169,20 +167,35 @@ class Window(QtWidgets.QWidget):
         self.b_next.hide()
 
 
-    def show_wordstats(self):
+    def show_vocab_stats(self):
         margin = 0
-        wordstat_w, wordstat_h = 300, 600
+        wordstat_w, wordstat_h = 400, 650
         disp_w = wordstat_w - 2 * margin
         disp_h = wordstat_h
 
-        wordstats = QtWidgets.QDialog(self, QtCore.Qt.WindowCloseButtonHint)
-        wordstats.setWindowTitle("Vocabulary statistics")        
-        wordstats.setFixedSize(wordstat_w, wordstat_h)
-        display = QtWidgets.QTextBrowser(wordstats)
-        display.setGeometry(margin, margin, disp_w, disp_h)
-        display.setStyleSheet("""background-color: rgb(240, 240, 240);font: Arial; font-size: 16px;""")
-        display.setText(self.vocab.get_most_unknown(10))
-        wordstats.exec()
+        vocabstats = QtWidgets.QDialog(self, QtCore.Qt.WindowCloseButtonHint)
+        vocabstats.setWindowTitle("Vocabulary statistics")
+        vocabstats.setFixedSize(wordstat_w, wordstat_h)
+
+        br_least = QtWidgets.QTextBrowser(vocabstats)
+        br_least.setGeometry(margin, margin, disp_w, disp_h)
+        br_least.setStyleSheet("""background-color: rgb(240, 240, 240);font: Arial; font-size: 16px;""")
+        br_least.setText(self.vocab.get_least_trained(10))
+
+        br_worst = QtWidgets.QTextBrowser(vocabstats)
+        br_worst.setGeometry(margin, margin, disp_w, disp_h)
+        br_worst.setStyleSheet("""background-color: rgb(240, 240, 240);font: Arial; font-size: 16px;""")
+        br_worst.setText(self.vocab.get_most_unknown(10))
+
+        tabs = QtWidgets.QTabWidget()
+        tabs.addTab(br_least,"Least trained")
+        tabs.addTab(br_worst,"Worst known")
+        tab_layout = QtWidgets.QVBoxLayout()
+        tab_layout.addWidget(tabs)
+        vocabstats.setLayout(tab_layout)
+
+        vocabstats.setAttribute(QtCore.Qt.WA_DeleteOnClose)
+        vocabstats.exec()
 
 
     def ctrl_enter_pressed(self):

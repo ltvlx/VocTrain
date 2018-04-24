@@ -103,7 +103,7 @@ class VocabularyTrainer:
             return "This session stats: %d✔ %d✘ %d❓"%(self.__n_cor, self.__n_inc, self.__n_left)
         elif self.__k_train == 1:
             return "This session stats: %d✔ %d✘"%(self.__n_cor, self.__n_inc)
-                    
+
 
     def get_most_unknown(self, n):
         if n <= 0:
@@ -123,6 +123,30 @@ class VocabularyTrainer:
         result = 'The worst known words:\n\n'
         for i in range(n):
             result += "%d. %s\n%s\n\n"%(i+1, df.at[i, 'word'], df.at[i, 'definition'])
+
+        return result[:-2]
+
+
+    def get_least_trained(self, n):
+        if n <= 0:
+            print("get_least_trained() can not print less then 1 word")
+            return
+
+        df = pd.DataFrame(columns=['word', 'definition', 'total'])
+        for name in self.__sheets:
+            df1 = self.__sheets[name][['word', 'definition', 'correct', 'incorrect']]
+            df1 = df1.assign(total = lambda x: x.correct + x.incorrect)
+            df1 = df1.drop(['correct', 'incorrect'], axis=1)
+            df = df.append(df1, ignore_index=True)
+
+        if n > len(df.index):
+            print()
+            n = len(df.index)
+        
+        df = df.sort_values(by=['total'])[:n].reset_index(drop=True)
+        result = 'The least trained known words:\n\n'
+        for i in range(n):
+            result += "%s (%d)\n%s\n\n"%(df.at[i, 'word'], df.at[i, 'total'], df.at[i, 'definition'])
 
         return result[:-2]
 
